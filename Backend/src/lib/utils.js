@@ -20,10 +20,12 @@ function cookieOptions() {
   return {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     httpOnly: true, // not accessible from client-side JS, protects against XSS
-    // Frontend and backend are served from the same Vercel project/domain
-    // (see vercel.json rewrites), so this is a same-site cookie — "lax" is
-    // enough. Only "secure" needs to flip on for HTTPS in production.
-    sameSite: "lax",
+    // Frontend and backend are deployed as two separate Vercel projects on
+    // two different domains, so this is a cross-site cookie — it needs
+    // SameSite=None + Secure for the browser to send it. Locally (same-site,
+    // http) "lax" + non-secure is what actually works, so this switches on
+    // NODE_ENV.
+    sameSite: isProduction ? "none" : "lax",
     secure: isProduction,
   };
 }

@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
-import { ArrowLeft, Check, CheckCheck, Reply } from "lucide-react";
+import { ArrowLeft, Check, CheckCheck, Reply, Download } from "lucide-react";
 import { useChatStore } from "../store/useChatStore.js";
 import { useAuthStore } from "../store/useAuthStore.js";
 import { useProfileViewStore } from "../store/useProfileViewStore.js";
-import { formatMessageTime } from "../lib/utils.js";
+import { formatMessageTime, getDownloadUrl } from "../lib/utils.js";
 import MessageInput from "./MessageInput.jsx";
 import MessageSkeleton from "./skeletons/MessageSkeleton.jsx";
 
@@ -141,11 +141,21 @@ function ChatContainer() {
                         isReplyFromMe={m.replyTo?.senderId === authUser?._id}
                       />
                       {m.image && (
-                        <img
-                          src={m.image}
-                          alt="attachment"
-                          className="mb-1.5 max-h-64 rounded-lg object-cover"
-                        />
+                        <div className="group/img relative mb-1.5">
+                          <img
+                            src={m.image}
+                            alt="attachment"
+                            className="max-h-64 rounded-lg object-cover"
+                          />
+                          <a
+                            href={getDownloadUrl(m.image)}
+                            download
+                            title="Download image"
+                            className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-black/50 text-white opacity-0 backdrop-blur-sm transition-opacity group-hover/img:opacity-100"
+                          >
+                            <Download size={14} />
+                          </a>
+                        </div>
                       )}
                       {m.text && <p>{m.text}</p>}
                       <span

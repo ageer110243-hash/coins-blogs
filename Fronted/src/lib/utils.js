@@ -6,6 +6,14 @@ export function formatMessageTime(date) {
   });
 }
 
+// Turns a Cloudinary image URL into one that forces a real download instead
+// of opening in a new tab — Cloudinary's fl_attachment flag makes it send
+// the file with Content-Disposition: attachment.
+export function getDownloadUrl(cloudinaryUrl) {
+  if (!cloudinaryUrl?.includes("/upload/")) return cloudinaryUrl;
+  return cloudinaryUrl.replace("/upload/", "/upload/fl_attachment/");
+}
+
 export function formatLastSeen(date) {
   const diffMs = Date.now() - new Date(date).getTime();
   const diffMin = Math.round(diffMs / 60000);
