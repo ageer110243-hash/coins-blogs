@@ -12,6 +12,7 @@ import {
 import toast from "react-hot-toast";
 import { useAuthStore } from "../store/useAuthStore.js";
 import AuthLayout from "../components/AuthLayout.jsx";
+import GoogleSignInButton from "../components/GoogleSignInButton.jsx";
 
 function validate(formData) {
   if (!formData.fullName.trim()) return "Full name is required";
@@ -144,6 +145,8 @@ function SignUpPage() {
           )}
         </button>
       </form>
+
+      <GoogleSignInButton />
 
       <p className="mt-6 text-center text-sm text-ink-faint lg:text-left">
         Already have an account?{" "}

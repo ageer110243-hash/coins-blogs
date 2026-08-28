@@ -8,6 +8,9 @@ export const useAuthStore = create((set) => ({
   isLoggingIn: false,
   isUpdatingProfile: false,
   isCheckingAuth: true,
+  isGoogleLoggingIn: false,
+  isSendingResetLink: false,
+  isResettingPassword: false,
 
   checkAuth: async () => {
     try {
@@ -70,6 +73,51 @@ export const useAuthStore = create((set) => ({
       toast.error(error?.response?.data?.message || "Couldn't update profile");
     } finally {
       set({ isUpdatingProfile: false });
+    }
+  },
+
+  googleLogin: async (idToken) => {
+    set({ isGoogleLoggingIn: true });
+    try {
+      const res = await axiosInstance.post("/auth/google", { idToken });
+      set({ authUser: res.data });
+      toast.success("Welcome!");
+      return true;
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Google sign-in failed");
+      return false;
+    } finally {
+      set({ isGoogleLoggingIn: false });
+    }
+  },
+
+  // Returns the dev-mode reset link (string) if SMTP isn't configured on
+  // the backend, `true` if a real email was sent, or `false` on failure.
+  forgotPassword: async (email) => {
+    set({ isSendingResetLink: true });
+    try {
+      const res = await axiosInstance.post("/auth/forgot-password", { email });
+      return res.data.resetLink || true;
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
+      return false;
+    } finally {
+      set({ isSendingResetLink: false });
+    }
+  },
+
+  resetPassword: async (token, password) => {
+    set({ isResettingPassword: true });
+    try {
+      const res = await axiosInstance.post(`/auth/reset-password/${token}`, { password });
+      set({ authUser: res.data });
+      toast.success("Password updated — you're logged in");
+      return true;
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Couldn't reset password");
+      return false;
+    } finally {
+      set({ isResettingPassword: false });
     }
   },
 }));

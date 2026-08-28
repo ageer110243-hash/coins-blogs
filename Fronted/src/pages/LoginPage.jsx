@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, MessageCircle, ArrowRight } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore.js";
 import AuthLayout from "../components/AuthLayout.jsx";
+import GoogleSignInButton from "../components/GoogleSignInButton.jsx";
 
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -55,9 +56,17 @@ function LoginPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-ink-soft">
-            Password
-          </label>
+          <div className="mb-1 flex items-center justify-between">
+            <label className="block text-xs font-medium text-ink-soft">
+              Password
+            </label>
+            <Link
+              to="/forgot-password"
+              className="text-xs font-medium text-signal hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <div className="group relative">
             <Lock
               size={16}
@@ -101,6 +110,8 @@ function LoginPage() {
           )}
         </button>
       </form>
+
+      <GoogleSignInButton />
 
       <p className="mt-6 text-center text-sm text-ink-faint lg:text-left">
         Don't have an account?{" "}
