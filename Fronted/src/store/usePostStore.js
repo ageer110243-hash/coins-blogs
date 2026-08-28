@@ -4,97 +4,104 @@ import { axiosInstance } from "../lib/axios.js";
 
 export const usePostStore = create((set, get) => ({
   posts: [],
-  categories: [],
-  activeCategory: "All",
-  isLoading: false,
-  isCreating: false,
-  isInquiring: false,
+  total: 0,
+  page: 1,
+  totalPages: 1,
+  isLoadingPosts: false,
 
-  getCategories: async () => {
-    try {
-      const res = await axiosInstance.get("/posts/categories");
-      set({ categories: res.data });
-    } catch {
-      // non-critical — the filter bar just won't show categories yet
-    }
-  },
+  businesses: [], // small featured set for the Home page carousel
+  isLoadingBusinesses: false,
 
-  getPosts: async () => {
-    set({ isLoading: true });
+  activePost: null,
+  isLoadingPost: false,
+
+  myPosts: [],
+  isLoadingMyPosts: false,
+  isSavingPost: false,
+
+  filters: { search: "", city: "All Cities", category: "All" },
+  setFilters: (partial) => set({ filters: { ...get().filters, ...partial } }),
+
+  fetchPosts: async (page = 1) => {
+    set({ isLoadingPosts: true });
     try {
-      const { activeCategory } = get();
-      const params = activeCategory !== "All" ? { category: activeCategory } : {};
-      const res = await axiosInstance.get("/posts", { params });
-      set({ posts: res.data });
+      const { search, city, category } = get().filters;
+      const res = await axiosInstance.get("/posts", {
+        params: { search, city, category, page, limit: 12 },
+      });
+      set({
+        posts: res.data.posts,
+        total: res.data.total,
+        page: res.data.page,
+        totalPages: res.data.totalPages,
+      });
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Couldn't load the feed");
+      toast.error(error?.response?.data?.message || "Couldn't load posts");
     } finally {
-      set({ isLoading: false });
+      set({ isLoadingPosts: false });
     }
   },
 
-  setCategory: (category) => {
-    set({ activeCategory: category });
-    get().getPosts();
-  },
-
-  createPost: async ({ title, description, image, category }) => {
-    set({ isCreating: true });
+  fetchFeaturedBusinesses: async () => {
+    set({ isLoadingBusinesses: true });
     try {
-      const res = await axiosInstance.post("/posts", { title, description, image, category });
-      set((state) => ({ posts: [res.data, ...state.posts] }));
-      toast.success("Posted!");
-      return true;
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Couldn't create post");
-      return false;
-    } finally {
-      set({ isCreating: false });
-    }
-  },
-
-  deletePost: async (postId) => {
-    try {
-      await axiosInstance.delete(`/posts/${postId}`);
-      set((state) => ({ posts: state.posts.filter((p) => p._id !== postId) }));
-      toast.success("Post removed");
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Couldn't remove post");
-    }
-  },
-
-  toggleLike: async (postId) => {
-    // optimistic update
-    set((state) => ({
-      posts: state.posts.map((p) =>
-        p._id === postId
-          ? {
-              ...p,
-              likedByMe: !p.likedByMe,
-              likesCount: p.likesCount + (p.likedByMe ? -1 : 1),
-            }
-          : p
-      ),
-    }));
-    try {
-      await axiosInstance.post(`/posts/${postId}/like`);
+      const res = await axiosInstance.get("/posts", {
+        params: { category: "Business", limit: 8 },
+      });
+      set({ businesses: res.data.posts });
     } catch {
-      get().getPosts(); // reconcile with the server if the optimistic update was wrong
+      // silent — the carousel just won't render if this fails, it's not
+      // the main content of the Home page
+    } finally {
+      set({ isLoadingBusinesses: false });
     }
   },
 
-  // Returns the seller's user object on success so the caller can select
-  // them as a chat contact and navigate straight to the conversation.
-  startInquiry: async (postId) => {
-    set({ isInquiring: true });
+  fetchPostById: async (id) => {
+    set({ isLoadingPost: true, activePost: null });
     try {
-      const res = await axiosInstance.post(`/posts/${postId}/inquire`);
+      const res = await axiosInstance.get(`/posts/${id}`);
+      set({ activePost: res.data });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Couldn't load this post");
+    } finally {
+      set({ isLoadingPost: false });
+    }
+  },
+
+  fetchMyPosts: async () => {
+    set({ isLoadingMyPosts: true });
+    try {
+      const res = await axiosInstance.get("/posts/mine/list");
+      set({ myPosts: res.data });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Couldn't load your posts");
+    } finally {
+      set({ isLoadingMyPosts: false });
+    }
+  },
+
+  createPost: async (data) => {
+    set({ isSavingPost: true });
+    try {
+      const res = await axiosInstance.post("/posts", data);
+      toast.success("Post published");
       return res.data;
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Couldn't start the conversation");
+      toast.error(error?.response?.data?.message || "Couldn't publish post");
       return null;
     } finally {
-      set({ isInquiring: false });
+      set({ isSavingPost: false });
+    }
+  },
+
+  deletePost: async (id) => {
+    try {
+      await axiosInstance.delete(`/posts/${id}`);
+      set({ myPosts: get().myPosts.filter((p) => p._id !== id) });
+      toast.success("Post deleted");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Couldn't delete post");
     }
   },
 }));

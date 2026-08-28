@@ -57,8 +57,8 @@ export const useChatStore = create((set, get) => ({
   },
 
   // Silent refresh of the open conversation — this is what makes chat feel
-  // "live" without a websocket: HomePage polls this every few seconds while
-  // a contact is selected (see the useEffect in HomePage.jsx).
+  // "live" without a websocket: ChatPage polls this every few seconds while
+  // a contact is selected (see the useEffect in ChatPage.jsx).
   refreshMessages: async () => {
     const { selectedContact } = get();
     if (!selectedContact) return;

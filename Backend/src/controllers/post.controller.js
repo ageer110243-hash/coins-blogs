@@ -1,192 +1,236 @@
-import Post, { POST_CATEGORIES } from "../models/post.model.js";
-import ChatRequest from "../models/chatRequest.model.js";
-import User from "../models/user.model.js";
+import mongoose from "mongoose";
+import Post from "../models/post.model.js";
 import cloudinary from "../lib/cloudinary.js";
 
-// posts, annotated with whether the logged-in user has liked each one and
-// how many likes it has — the raw `likes` array of ids isn't sent as-is.
-// myId is undefined for the public/logged-out preview, which just means
-// likedByMe is always false for them.
-function toPublicPost(post, myId) {
-  const obj = post.toObject();
-  const likeIds = obj.likes || [];
-  return {
-    ...obj,
-    likesCount: likeIds.length,
-    likedByMe: myId ? likeIds.some((id) => id.toString() === myId.toString()) : false,
-    likes: undefined,
-  };
-}
+const ALLOWED_CATEGORIES = ["University", "Academy", "Business", "Admission", "Jobs", "Events", "General"];
 
-export const getCategories = (_req, res) => {
-  res.status(200).json(POST_CATEGORIES);
-};
+const toObjectId = (id) => (mongoose.Types.ObjectId.isValid(id) ? id : null);
 
+// GET /api/posts?search=&city=&category=&page=&limit=
+// Public. Combines free-text search with city + category filters, all
+// optional and combinable, matching the Explore page's filter bar.
 export const getPosts = async (req, res) => {
   try {
-    const { category } = req.query;
-    const filter = { status: "active" };
-    if (category && POST_CATEGORIES.includes(category)) {
-      filter.category = category;
-    }
+    const { search, city, category, page = 1, limit = 12 } = req.query;
 
-    const posts = await Post.find(filter)
-      .sort({ createdAt: -1 })
-      .limit(200)
-      .populate("userId", "fullName profilePic");
+    const query = {};
+    if (city && city !== "All Cities") query.city = city;
+    if (category && category !== "All") query.category = category;
+    if (search?.trim()) query.$text = { $search: search.trim() };
 
-    res.status(200).json(posts.map((p) => toPublicPost(p, req.user?._id)));
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(48, Math.max(1, parseInt(limit, 10) || 12));
+
+    const [posts, total] = await Promise.all([
+      Post.find(query)
+        .sort({ createdAt: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
+        .populate("author", "fullName profilePic"),
+      Post.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      posts,
+      total,
+      page: pageNum,
+      totalPages: Math.max(1, Math.ceil(total / limitNum)),
+    });
   } catch (error) {
     console.error("getPosts error:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-export const createPost = async (req, res) => {
+// GET /api/posts/:id — full detail for the Post Detail page
+export const getPostById = async (req, res) => {
   try {
-    const { title, description, image, category } = req.body;
-
-    if (!title?.trim() || !description?.trim() || !image) {
-      return res
-        .status(400)
-        .json({ message: "Title, description, and an image are all required" });
+    const { id } = req.params;
+    if (!toObjectId(id)) {
+      return res.status(400).json({ message: "Invalid post id" });
     }
 
-    // image arrives as a base64 data URL from the client
-    const uploadResponse = await cloudinary.uploader.upload(image, {
-      folder: "chatwithme/posts",
-    });
+    const post = await Post.findById(id).populate("author", "fullName profilePic");
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
 
-    const post = await Post.create({
-      userId: req.user._id,
+    res.status(200).json(post);
+  } catch (error) {
+    console.error("getPostById error:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// POST /api/posts — create a post (University / Academy / Business / etc.)
+export const createPost = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      image,
+      category,
+      city,
+      organizationName,
+      contact,
+      university,
+      academy,
+      business,
+    } = req.body;
+
+    if (!title?.trim() || !description?.trim() || !category || !city?.trim()) {
+      return res
+        .status(400)
+        .json({ message: "Title, description, category and city are required" });
+    }
+
+    if (!ALLOWED_CATEGORIES.includes(category)) {
+      return res.status(400).json({ message: "Invalid category" });
+    }
+
+    let imageUrl = "";
+    if (image) {
+      // image arrives as a base64 data URL from the client, same as
+      // profilePic / chat message images elsewhere in this app
+      const uploadResponse = await cloudinary.uploader.upload(image, {
+        folder: "chatwithme/posts",
+      });
+      imageUrl = uploadResponse.secure_url;
+    }
+
+    const newPost = new Post({
+      author: req.user._id,
       title: title.trim(),
       description: description.trim(),
-      category: POST_CATEGORIES.includes(category) ? category : "Other",
-      image: uploadResponse.secure_url,
+      image: imageUrl,
+      category,
+      city: city.trim(),
+      organizationName: organizationName?.trim() || "",
+      contact: {
+        phone: contact?.phone || "",
+        email: contact?.email || "",
+        address: contact?.address || "",
+        website: contact?.website || "",
+      },
+      university: category === "University" ? university || {} : undefined,
+      academy: category === "Academy" ? academy || {} : undefined,
+      business: category === "Business" ? business || {} : undefined,
     });
-    await post.populate("userId", "fullName profilePic");
 
-    res.status(201).json(toPublicPost(post, req.user._id));
+    await newPost.save();
+    await newPost.populate("author", "fullName profilePic");
+
+    res.status(201).json(newPost);
   } catch (error) {
     console.error("createPost error:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-export const deletePost = async (req, res) => {
+// PUT /api/posts/:id — owner (or admin) only
+export const updatePost = async (req, res) => {
   try {
     const { id } = req.params;
-    const post = await Post.findById(id);
+    if (!toObjectId(id)) {
+      return res.status(400).json({ message: "Invalid post id" });
+    }
 
+    const post = await Post.findById(id);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    const isOwner = post.userId.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === "admin";
-
-    if (!isOwner && !isAdmin) {
-      return res.status(403).json({ message: "You can't remove this post" });
+    const isOwner = post.author.toString() === req.user._id.toString();
+    if (!isOwner && req.user.role !== "admin") {
+      return res.status(403).json({ message: "You can only edit your own posts" });
     }
 
-    post.status = "removed";
-    await post.save();
+    const {
+      title,
+      description,
+      image,
+      category,
+      city,
+      organizationName,
+      contact,
+      university,
+      academy,
+      business,
+    } = req.body;
 
-    res.status(200).json({ message: "Post removed" });
+    if (category && !ALLOWED_CATEGORIES.includes(category)) {
+      return res.status(400).json({ message: "Invalid category" });
+    }
+
+    if (title?.trim()) post.title = title.trim();
+    if (description?.trim()) post.description = description.trim();
+    if (city?.trim()) post.city = city.trim();
+    if (organizationName !== undefined) post.organizationName = organizationName.trim();
+    if (category) post.category = category;
+
+    if (contact) {
+      post.contact = {
+        phone: contact.phone ?? post.contact?.phone ?? "",
+        email: contact.email ?? post.contact?.email ?? "",
+        address: contact.address ?? post.contact?.address ?? "",
+        website: contact.website ?? post.contact?.website ?? "",
+      };
+    }
+
+    if (university) post.university = { ...post.university?.toObject?.(), ...university };
+    if (academy) post.academy = { ...post.academy?.toObject?.(), ...academy };
+    if (business) post.business = { ...post.business?.toObject?.(), ...business };
+
+    if (image) {
+      const uploadResponse = await cloudinary.uploader.upload(image, {
+        folder: "chatwithme/posts",
+      });
+      post.image = uploadResponse.secure_url;
+    }
+
+    await post.save();
+    await post.populate("author", "fullName profilePic");
+
+    res.status(200).json(post);
+  } catch (error) {
+    console.error("updatePost error:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// DELETE /api/posts/:id — owner (or admin) only
+export const deletePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!toObjectId(id)) {
+      return res.status(400).json({ message: "Invalid post id" });
+    }
+
+    const post = await Post.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const isOwner = post.author.toString() === req.user._id.toString();
+    if (!isOwner && req.user.role !== "admin") {
+      return res.status(403).json({ message: "You can only delete your own posts" });
+    }
+
+    await post.deleteOne();
+    res.status(200).json({ message: "Post deleted" });
   } catch (error) {
     console.error("deletePost error:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-export const toggleLike = async (req, res) => {
+// GET /api/posts/mine/list — posts created by the logged-in user (My Posts)
+export const getMyPosts = async (req, res) => {
   try {
-    const { id } = req.params;
-    const myId = req.user._id;
-
-    const post = await Post.findById(id);
-    if (!post || post.status !== "active") {
-      return res.status(404).json({ message: "Post not found" });
-    }
-
-    const alreadyLiked = post.likes.some((uid) => uid.toString() === myId.toString());
-    if (alreadyLiked) {
-      post.likes = post.likes.filter((uid) => uid.toString() !== myId.toString());
-    } else {
-      post.likes.push(myId);
-    }
-    await post.save();
-
-    res.status(200).json({ likesCount: post.likes.length, likedByMe: !alreadyLiked });
+    const posts = await Post.find({ author: req.user._id }).sort({ createdAt: -1 });
+    res.status(200).json(posts);
   } catch (error) {
-    console.error("toggleLike error:", error.message);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-// Admin-only: mark/unmark a post's owner-business as verified.
-export const setVerified = async (req, res) => {
-  try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Admins only" });
-    }
-    const { id } = req.params;
-    const { verified } = req.body;
-
-    const post = await Post.findByIdAndUpdate(id, { verified: !!verified }, { new: true });
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
-    }
-
-    res.status(200).json({ verified: post.verified });
-  } catch (error) {
-    console.error("setVerified error:", error.message);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-// Clicking "Message seller" should start a conversation immediately — a
-// business inquiry isn't the same as a private friend request, so this
-// skips the usual pending-request step and connects both users right away.
-export const startInquiry = async (req, res) => {
-  try {
-    const { id: postId } = req.params;
-    const myId = req.user._id;
-
-    const post = await Post.findById(postId);
-    if (!post || post.status !== "active") {
-      return res.status(404).json({ message: "Post not found" });
-    }
-
-    const sellerId = post.userId;
-    if (sellerId.toString() === myId.toString()) {
-      return res.status(400).json({ message: "This is your own post" });
-    }
-
-    let connection = await ChatRequest.findOne({
-      $or: [
-        { senderId: myId, receiverId: sellerId },
-        { senderId: sellerId, receiverId: myId },
-      ],
-    });
-
-    if (connection) {
-      if (connection.status !== "accepted") {
-        connection.status = "accepted";
-        await connection.save();
-      }
-    } else {
-      connection = await ChatRequest.create({
-        senderId: myId,
-        receiverId: sellerId,
-        status: "accepted",
-      });
-    }
-
-    const seller = await User.findById(sellerId).select("-password");
-    res.status(200).json(seller);
-  } catch (error) {
-    console.error("startInquiry error:", error.message);
+    console.error("getMyPosts error:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };

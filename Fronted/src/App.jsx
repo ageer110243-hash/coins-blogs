@@ -6,13 +6,17 @@ import Navbar from "./components/Navbar.jsx";
 import ProfileModal from "./components/ProfileModal.jsx";
 import GoogleAuthProvider from "./components/GoogleAuthProvider.jsx";
 import HomePage from "./pages/HomePage.jsx";
+import ExplorePage from "./pages/ExplorePage.jsx";
+import PostDetailPage from "./pages/PostDetailPage.jsx";
+import CreatePostPage from "./pages/CreatePostPage.jsx";
+import AboutPage from "./pages/AboutPage.jsx";
+import ChatPage from "./pages/ChatPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
-import BusinessPage from "./pages/BusinessPage.jsx";
 import { useAuthStore } from "./store/useAuthStore.js";
 
 function App() {
@@ -35,10 +39,24 @@ function App() {
       <div className="min-h-svh bg-paper">
         <Navbar />
         <Routes>
+          {/* Public directory pages — Home / Explore / About / Post detail
+              are browsable without logging in. */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/posts/:id" element={<PostDetailPage />} />
+
+          {/* Chat keeps its original behavior — just moved from "/" to
+              "/chat" now that "/" is the marketing Home page. */}
           <Route
-            path="/"
-            element={authUser ? <HomePage /> : <Navigate to="/login" />}
+            path="/chat"
+            element={authUser ? <ChatPage /> : <Navigate to="/login" />}
           />
+          <Route
+            path="/create-post"
+            element={authUser ? <CreatePostPage /> : <Navigate to="/login" />}
+          />
+
           <Route
             path="/login"
             element={!authUser ? <LoginPage /> : <Navigate to="/" />}
@@ -68,10 +86,6 @@ function App() {
           <Route
             path="/settings"
             element={authUser ? <SettingsPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/business"
-            element={authUser ? <BusinessPage /> : <Navigate to="/login" />}
           />
         </Routes>
         <ProfileModal />

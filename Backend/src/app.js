@@ -22,26 +22,6 @@ const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
   .split(",")
   .map((o) => o.trim());
 
-// Every Vercel deployment also gets its own unique preview URL like
-// "coins-blogs-z791-<hash>-<user>.vercel.app" in addition to the stable
-// "coins-blogs-z791.vercel.app" domain set in CORS_ORIGIN. This lets any
-// of those per-deployment URLs through too, so testing a fresh deploy
-// doesn't require updating CORS_ORIGIN every time.
-const vercelPreviewPrefixes = allowedOrigins
-  .filter((o) => o.includes(".vercel.app"))
-  .map((o) => new URL(o).hostname.replace(".vercel.app", ""));
-
-function isAllowedOrigin(origin) {
-  if (allowedOrigins.includes(origin)) return true;
-  try {
-    const hostname = new URL(origin).hostname;
-    if (!hostname.endsWith(".vercel.app")) return false;
-    return vercelPreviewPrefixes.some((prefix) => hostname.startsWith(`${prefix}-`));
-  } catch {
-    return false;
-  }
-}
-
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(compression());
 app.use(express.json({ limit: "10mb" })); // room for small inline images before they're uploaded to Cloudinary

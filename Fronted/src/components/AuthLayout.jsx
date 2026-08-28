@@ -1,5 +1,4 @@
 import { MessageCircle, ShieldCheck, Zap, Users } from "lucide-react";
-import BusinessMarquee from "./BusinessMarquee.jsx";
 
 const FEATURES = [
   { icon: Zap, text: "Real-time messaging that feels instant" },
@@ -41,10 +40,6 @@ function AuthLayout({ children }) {
             A fast, friendly place for your conversations — clean design,
             live presence, and a dashboard to keep it all in check.
           </p>
-        </div>
-
-        <div className="relative animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-          <BusinessMarquee />
         </div>
 
         <div className="relative flex flex-col gap-4">

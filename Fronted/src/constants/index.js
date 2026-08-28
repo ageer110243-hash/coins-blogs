@@ -1,3 +1,48 @@
+// Sindh cities shown in the Explore page's city filter and the Create
+// Post form. "All Cities" is the default/no-filter option.
+export const SINDH_CITIES = [
+  "All Cities",
+  "Karachi",
+  "Hyderabad",
+  "Shaheed Benazirabad / Nawabshah",
+  "Sukkur",
+  "Larkana",
+  "Mirpurkhas",
+  "Jamshoro",
+  "Matiari",
+  "Tando Allahyar",
+  "Tando Adam",
+  "Sanghar",
+  "Dadu",
+  "Thatta",
+  "Badin",
+  "Khairpur",
+  "Ghotki",
+  "Jacobabad",
+  "Shikarpur",
+  "Umerkot",
+  "Tharparkar",
+];
+
+// Post category / type — used for the Explore filter bar and as the
+// discriminator that decides which extra detail block (university /
+// academy / business) a post's form and detail page show.
+export const POST_CATEGORIES = [
+  "All",
+  "University",
+  "Academy",
+  "Business",
+  "Admission",
+  "Jobs",
+  "Events",
+  "General",
+];
+
+// Categories that get their own dedicated "organization" detail block on
+// the post form and detail page. Everything else in POST_CATEGORIES is a
+// plain post (title/description/image/contact only).
+export const ORG_CATEGORIES = ["University", "Academy", "Business"];
+
 // Temporary front-end-only data. Replace with real API responses once
 // Backend/src/controllers + Backend/src/models are implemented.
 
