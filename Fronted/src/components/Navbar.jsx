@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { MessageCircle, LogOut, LayoutDashboard, Settings } from "lucide-react";
+import { MessageCircle, LogOut, LayoutDashboard, Settings, Store } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore.js";
 
 function Navbar() {
@@ -32,6 +32,19 @@ function Navbar() {
             >
               <MessageCircle size={15} />
               Chats
+            </NavLink>
+            <NavLink
+              to="/business"
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                  isActive
+                    ? "bg-signal-soft text-signal"
+                    : "text-ink-soft hover:bg-panel-soft hover:text-ink"
+                }`
+              }
+            >
+              <Store size={15} />
+              <span className="hidden sm:inline">Business</span>
             </NavLink>
             {authUser.role === "admin" && (
               <NavLink

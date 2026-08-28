@@ -12,6 +12,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
+import BusinessPage from "./pages/BusinessPage.jsx";
 import { useAuthStore } from "./store/useAuthStore.js";
 
 function App() {
@@ -67,6 +68,10 @@ function App() {
           <Route
             path="/settings"
             element={authUser ? <SettingsPage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/business"
+            element={authUser ? <BusinessPage /> : <Navigate to="/login" />}
           />
         </Routes>
         <ProfileModal />

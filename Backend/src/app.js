@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import adminRoutes from "./routes/admin.route.js";
 import requestRoutes from "./routes/request.route.js";
+import postRoutes from "./routes/post.route.js";
 
 const app = express();
 const isProduction = process.env.NODE_ENV === "production";
@@ -20,6 +21,26 @@ if (isProduction) app.set("trust proxy", 1);
 const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
   .split(",")
   .map((o) => o.trim());
+
+// Every Vercel deployment also gets its own unique preview URL like
+// "coins-blogs-z791-<hash>-<user>.vercel.app" in addition to the stable
+// "coins-blogs-z791.vercel.app" domain set in CORS_ORIGIN. This lets any
+// of those per-deployment URLs through too, so testing a fresh deploy
+// doesn't require updating CORS_ORIGIN every time.
+const vercelPreviewPrefixes = allowedOrigins
+  .filter((o) => o.includes(".vercel.app"))
+  .map((o) => new URL(o).hostname.replace(".vercel.app", ""));
+
+function isAllowedOrigin(origin) {
+  if (allowedOrigins.includes(origin)) return true;
+  try {
+    const hostname = new URL(origin).hostname;
+    if (!hostname.endsWith(".vercel.app")) return false;
+    return vercelPreviewPrefixes.some((prefix) => hostname.startsWith(`${prefix}-`));
+  } catch {
+    return false;
+  }
+}
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(compression());
@@ -55,6 +76,7 @@ app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/requests", requestRoutes);
+app.use("/api/posts", postRoutes);
 
 app.use("/api", (_req, res) => {
   res.status(404).json({ message: "Route not found" });
