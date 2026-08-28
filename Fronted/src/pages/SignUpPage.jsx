@@ -52,7 +52,7 @@ function SignUpPage() {
           Create your account
         </h1>
         <p className="mt-1 text-sm text-ink-faint">
-          Join ChatWithMe and start chatting
+          Join CoinsBlogs and start connecting
         </p>
       </div>
 

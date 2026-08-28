@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Post from "../models/post.model.js";
+import ChatRequest from "../models/chatRequest.model.js";
 import cloudinary from "../lib/cloudinary.js";
 
 const ALLOWED_CATEGORIES = ["University", "Academy", "Business", "Admission", "Jobs", "Events", "General"];
@@ -55,7 +56,35 @@ export const getPostById = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    res.status(200).json(post);
+    // Only when someone is logged in (attachUserIfPresent) and viewing
+    // someone else's post do we attach a connectionStatus — this is what
+    // powers the small "Chat" option next to "Posted by" on the post page.
+    let authorWithStatus = post.author;
+    if (req.user && post.author && req.user._id.toString() !== post.author._id.toString()) {
+      const request = await ChatRequest.findOne({
+        $or: [
+          { senderId: req.user._id, receiverId: post.author._id },
+          { senderId: post.author._id, receiverId: req.user._id },
+        ],
+      });
+
+      let connectionStatus = "none";
+      let requestId = null;
+      if (request) {
+        requestId = request._id;
+        if (request.status === "accepted") {
+          connectionStatus = "connected";
+        } else if (request.senderId.toString() === req.user._id.toString()) {
+          connectionStatus = "pending-sent";
+        } else {
+          connectionStatus = "pending-received";
+        }
+      }
+
+      authorWithStatus = { ...post.author.toObject(), connectionStatus, requestId };
+    }
+
+    res.status(200).json({ ...post.toObject(), author: authorWithStatus });
   } catch (error) {
     console.error("getPostById error:", error.message);
     res.status(500).json({ message: "Internal server error" });

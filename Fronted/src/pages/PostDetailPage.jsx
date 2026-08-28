@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   Loader,
@@ -11,9 +11,100 @@ import {
   ImageOff,
   ListChecks,
   Trash2,
+  MessageCircle,
+  Check,
+  Clock,
 } from "lucide-react";
 import { usePostStore } from "../store/usePostStore.js";
 import { useAuthStore } from "../store/useAuthStore.js";
+import { useRequestStore } from "../store/useRequestStore.js";
+import { useChatStore } from "../store/useChatStore.js";
+
+// The small "chat with the poster" option shown next to "Posted by ...".
+// Reuses the app's existing connect-then-chat flow (ChatRequest model):
+// - "none"            -> "Chat" button sends a request
+// - "pending-sent"    -> shows "Requested" (disabled)
+// - "pending-received"-> tells them to respond from Chats
+// - "connected"       -> "Message" opens the conversation directly
+function ChatWithAuthorButton({ author }) {
+  const navigate = useNavigate();
+  const { authUser } = useAuthStore();
+  const { sendingToId, sendRequest } = useRequestStore();
+  const selectContact = useChatStore((s) => s.selectContact);
+  const [status, setStatus] = useState(author?.connectionStatus || "none");
+
+  useEffect(() => {
+    setStatus(author?.connectionStatus || "none");
+  }, [author?._id, author?.connectionStatus]);
+
+  if (!author?._id) return null;
+
+  // Not logged in — send them to log in first instead of hiding the option.
+  if (!authUser) {
+    return (
+      <Link
+        to="/login"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink-soft transition hover:border-signal/40 hover:bg-signal-soft hover:text-signal"
+      >
+        <MessageCircle size={14} />
+        Login to chat
+      </Link>
+    );
+  }
+
+  // Viewing your own post — nothing to chat about.
+  if (authUser._id === author._id) return null;
+
+  if (status === "connected") {
+    return (
+      <button
+        onClick={() => {
+          selectContact(author);
+          navigate("/chat");
+        }}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink-soft transition hover:border-signal/40 hover:bg-signal-soft hover:text-signal"
+      >
+        <MessageCircle size={14} />
+        Message
+      </button>
+    );
+  }
+
+  if (status === "pending-sent") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink-faint">
+        <Clock size={14} />
+        Requested
+      </span>
+    );
+  }
+
+  if (status === "pending-received") {
+    return (
+      <Link
+        to="/chat"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink-soft transition hover:border-signal/40 hover:bg-signal-soft hover:text-signal"
+      >
+        <Check size={14} />
+        Respond to their request
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      onClick={async () => {
+        await sendRequest(author._id);
+        setStatus("pending-sent");
+      }}
+      disabled={sendingToId === author._id}
+      className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink-soft transition hover:border-signal/40 hover:bg-signal-soft hover:text-signal disabled:opacity-60"
+    >
+      <MessageCircle size={14} />
+      {sendingToId === author._id ? "Sending..." : "Chat"}
+    </button>
+  );
+}
 
 function formatDate(value) {
   if (!value) return "";
@@ -247,15 +338,19 @@ function PostDetailPage() {
               </span>
             </div>
 
-            {canManage && (
-              <button
-                onClick={handleDelete}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink-soft transition hover:border-danger/40 hover:bg-danger-soft hover:text-danger"
-              >
-                <Trash2 size={14} />
-                Delete post
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              <ChatWithAuthorButton author={post.author} />
+
+              {canManage && (
+                <button
+                  onClick={handleDelete}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink-soft transition hover:border-danger/40 hover:bg-danger-soft hover:text-danger"
+                >
+                  <Trash2 size={14} />
+                  Delete post
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

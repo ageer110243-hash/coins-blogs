@@ -29,7 +29,7 @@ function Navbar() {
             <MessageCircle size={17} strokeWidth={2.4} />
           </span>
           <span className="font-display text-lg font-bold tracking-tight text-ink">
-            Chat<span className="brand-gradient-text">WithMe</span>
+            Coins<span className="brand-gradient-text">Blogs</span>
           </span>
         </Link>
 

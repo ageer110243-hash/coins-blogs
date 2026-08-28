@@ -87,7 +87,7 @@ function AdminPage() {
             Admin dashboard
           </h1>
           <p className="text-sm text-ink-faint">
-            Live data from your ChatWithMe database.
+            Live data from your CoinsBlogs database.
           </p>
         </div>
         <span className="flex items-center gap-1.5 rounded-full bg-online-soft px-3 py-1.5 text-xs font-semibold text-online">

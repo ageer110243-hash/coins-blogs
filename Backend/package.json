@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "ChatWithMe API — Express + MongoDB + Socket.IO",
+  "description": "CoinsBlogs API — Express + MongoDB + Socket.IO",
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",

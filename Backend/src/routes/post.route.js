@@ -1,5 +1,5 @@
 import express from "express";
-import { protectRoute } from "../middleware/auth.middleware.js";
+import { protectRoute, attachUserIfPresent } from "../middleware/auth.middleware.js";
 import {
   getPosts,
   getPostById,
@@ -16,7 +16,10 @@ const router = express.Router();
 router.get("/mine/list", protectRoute, getMyPosts);
 
 router.get("/", getPosts);
-router.get("/:id", getPostById);
+// attachUserIfPresent (not protectRoute) — post detail stays public for
+// guests, but a logged-in viewer also gets the author's connectionStatus
+// so the post page can show a "Chat" / "Requested" option.
+router.get("/:id", attachUserIfPresent, getPostById);
 
 router.post("/", protectRoute, createPost);
 router.put("/:id", protectRoute, updatePost);
