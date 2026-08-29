@@ -25,7 +25,7 @@ function ChatPage() {
   }, [refreshContacts]);
 
   return (
-    <div className="mx-auto flex h-[calc(100svh-56px)] max-w-6xl overflow-hidden">
+    <div className="mx-auto flex h-[calc(100svh-74px)] max-w-6xl overflow-hidden">
       <div className={`${selectedContact ? "hidden sm:flex" : "flex"} h-full`}>
         <Sidebar />
       </div>

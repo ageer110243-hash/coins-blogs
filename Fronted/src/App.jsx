@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { Loader } from "lucide-react";
 import Navbar from "./components/Navbar.jsx";
+import Footer from "./components/Footer.jsx";
 import ProfileModal from "./components/ProfileModal.jsx";
 import GoogleAuthProvider from "./components/GoogleAuthProvider.jsx";
 import HomePage from "./pages/HomePage.jsx";
@@ -19,9 +20,15 @@ import AdminPage from "./pages/AdminPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import { useAuthStore } from "./store/useAuthStore.js";
 
+// Pages that own their own full-viewport layout — the footer would either
+// get pushed off-screen or introduce a second scrollbar, so it's skipped
+// on these routes only.
+const NO_FOOTER_PREFIXES = ["/chat", "/login", "/signup", "/forgot-password", "/reset-password"];
+
 function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   const location = useLocation();
+  const showFooter = !NO_FOOTER_PREFIXES.some((prefix) => location.pathname.startsWith(prefix));
 
   useEffect(() => {
     checkAuth();
@@ -91,6 +98,7 @@ function App() {
           />
         </Routes>
         </div>
+        {showFooter && <Footer />}
         <ProfileModal />
         <Toaster position="top-center" />
       </div>

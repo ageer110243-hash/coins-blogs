@@ -9,7 +9,7 @@ const SWIPE_THRESHOLD_PX = 40;
 // (no carousel package) — autoplay via setInterval, manual nav via
 // dots/arrows, and touch swipe on mobile. Pauses autoplay on
 // hover/touch so people can actually read a slide.
-function HeroCarousel({ banners }) {
+function HeroCarousel({ banners, fullBleed = false }) {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -63,13 +63,21 @@ function HeroCarousel({ banners }) {
 
   return (
     <div
-      className="group/hero relative w-full overflow-hidden rounded-2xl border border-line bg-panel-soft"
+      className={`group/hero relative w-full overflow-hidden bg-panel-soft ${
+        fullBleed ? "" : "rounded-2xl border border-line"
+      }`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="relative aspect-[16/9] w-full sm:aspect-[21/9]">
+      <div
+        className={
+          fullBleed
+            ? "relative aspect-[4/3] w-full sm:aspect-[16/7]"
+            : "relative aspect-[16/9] w-full sm:aspect-[21/9]"
+        }
+      >
         {banners.map((banner, i) => (
           <div
             key={banner._id}
@@ -90,13 +98,17 @@ function HeroCarousel({ banners }) {
                 draggable={false}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-3 text-left sm:p-5">
+              <div className={`absolute inset-x-0 bottom-0 text-left ${fullBleed ? "p-4 sm:p-8" : "p-3 sm:p-5"}`}>
                 {banner.businessName && (
                   <span className="inline-block rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm sm:text-xs">
                     {banner.businessName}
                   </span>
                 )}
-                <h3 className="mt-1 line-clamp-1 font-display text-sm font-semibold text-white sm:text-lg">
+                <h3
+                  className={`mt-1 line-clamp-1 font-display font-semibold text-white ${
+                    fullBleed ? "text-base sm:text-2xl" : "text-sm sm:text-lg"
+                  }`}
+                >
                   {banner.title}
                 </h3>
               </div>
@@ -111,7 +123,9 @@ function HeroCarousel({ banners }) {
             type="button"
             onClick={prev}
             aria-label="Previous slide"
-            className="absolute left-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-ink/40 p-1.5 text-white opacity-0 backdrop-blur-sm transition hover:bg-ink/60 group-hover/hero:opacity-100 sm:grid sm:place-items-center"
+            className={`absolute left-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-ink/40 p-1.5 text-white opacity-0 backdrop-blur-sm transition hover:bg-ink/60 group-hover/hero:opacity-100 sm:grid sm:place-items-center ${
+              fullBleed ? "sm:left-4" : ""
+            }`}
           >
             <ChevronLeft size={18} />
           </button>
@@ -119,12 +133,14 @@ function HeroCarousel({ banners }) {
             type="button"
             onClick={next}
             aria-label="Next slide"
-            className="absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-ink/40 p-1.5 text-white opacity-0 backdrop-blur-sm transition hover:bg-ink/60 group-hover/hero:opacity-100 sm:grid sm:place-items-center"
+            className={`absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-ink/40 p-1.5 text-white opacity-0 backdrop-blur-sm transition hover:bg-ink/60 group-hover/hero:opacity-100 sm:grid sm:place-items-center ${
+              fullBleed ? "sm:right-4" : ""
+            }`}
           >
             <ChevronRight size={18} />
           </button>
 
-          <div className="absolute inset-x-0 bottom-2 flex items-center justify-center gap-1.5 sm:bottom-3">
+          <div className="absolute inset-x-0 bottom-2 flex items-center justify-center gap-1.5 sm:bottom-4">
             {banners.map((b, i) => (
               <button
                 key={b._id}

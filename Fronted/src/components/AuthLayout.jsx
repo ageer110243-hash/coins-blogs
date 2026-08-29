@@ -8,7 +8,7 @@ const FEATURES = [
 
 function AuthLayout({ children }) {
   return (
-    <div className="grid min-h-[calc(100svh-56px)] grid-cols-1 lg:grid-cols-2">
+    <div className="grid min-h-[calc(100svh-74px)] grid-cols-1 lg:grid-cols-2">
       {/* Left — animated brand hero, hidden on small screens */}
       <div className="brand-gradient relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between lg:p-12">
         <div
@@ -34,11 +34,11 @@ function AuthLayout({ children }) {
             <MessageCircle size={22} strokeWidth={2.4} />
           </span>
           <h1 className="mt-6 font-display text-4xl font-bold leading-tight text-white">
-            Chat<span className="text-white/70">WithMe</span>
+            Sindh<span className="text-gold">Link</span>
           </h1>
           <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-white/80">
-            A fast, friendly place for your conversations — clean design,
-            live presence, and a dashboard to keep it all in check.
+            Universities, academies and businesses across Sindh — with a live
+            chat to talk to the people behind every listing.
           </p>
         </div>
 

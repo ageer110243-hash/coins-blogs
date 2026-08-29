@@ -1,37 +1,41 @@
 @import "tailwindcss";
 
 @theme {
-  /* Signature palette — cool paper background, ink text, "signal violet" accent */
-  --color-paper: #f2f3f7;
+  /* Signature palette — drawn from Ajrak block-print: indigo, madder red,
+     mustard gold, warm ivory. Distinctly "Sindh" rather than generic SaaS. */
+  --color-paper: #faf6ec;
   --color-panel: #ffffff;
-  --color-panel-soft: #f8f8fb;
-  --color-ink: #1b1d29;
-  --color-ink-soft: #565a6e;
-  --color-ink-faint: #9296a8;
-  --color-line: #e5e6ee;
+  --color-panel-soft: #f6f1e2;
+  --color-ink: #1d2233;
+  --color-ink-soft: #585a71;
+  --color-ink-faint: #97949f;
+  --color-line: #e7dfc8;
 
-  --color-signal: #5b4fe0;
-  --color-signal-soft: #eeecfc;
-  --color-signal-dark: #453ab5;
-  --color-signal-light: #8b7ff5;
+  --color-signal: #2f4c86;
+  --color-signal-soft: #e7ecf5;
+  --color-signal-dark: #1f345c;
+  --color-signal-light: #5c78b3;
 
-  --color-accent: #47bfff;
-  --color-accent-soft: #e5f6ff;
+  --color-accent: #b23a2e;
+  --color-accent-soft: #f7e6e2;
 
-  --color-online: #22c55e;
-  --color-online-soft: #e9fbf0;
-  --color-away: #f0a93f;
-  --color-danger: #ef4444;
-  --color-danger-soft: #fdecec;
+  --color-gold: #d98a2b;
+  --color-gold-soft: #faecd7;
 
-  --color-bubble-me: #5b4fe0;
-  --color-bubble-them: #eef0f5;
+  --color-online: #3f8f45;
+  --color-online-soft: #e8f3e6;
+  --color-away: #d98a2b;
+  --color-danger: #c0392b;
+  --color-danger-soft: #fbeae6;
+
+  --color-bubble-me: #2f4c86;
+  --color-bubble-them: #f1ebdb;
 
   --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
 
-  --shadow-glow: 0 20px 45px -18px rgba(91, 79, 224, 0.45);
-  --shadow-card: 0 1px 2px rgba(27, 29, 41, 0.04), 0 10px 24px -14px rgba(27, 29, 41, 0.12);
+  --shadow-glow: 0 20px 45px -18px rgba(47, 76, 134, 0.45);
+  --shadow-card: 0 1px 2px rgba(29, 34, 51, 0.05), 0 10px 24px -14px rgba(29, 34, 51, 0.14);
 }
 
 * {
@@ -64,21 +68,40 @@ body {
   background: transparent;
 }
 
-/* brand gradient helpers */
+/* brand gradient helpers — indigo drifting into mustard gold, the signature
+   move instead of the expected purple-to-blue SaaS gradient */
 .brand-gradient {
-  background-image: linear-gradient(135deg, var(--color-signal) 0%, #7b6ef0 45%, var(--color-accent) 100%);
+  background-image: linear-gradient(135deg, var(--color-signal) 0%, #3d5a92 45%, var(--color-gold) 100%);
 }
 .brand-gradient-text {
-  background-image: linear-gradient(135deg, var(--color-signal) 0%, var(--color-accent) 100%);
+  background-image: linear-gradient(135deg, var(--color-signal) 0%, var(--color-gold) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+.ink-gradient {
+  background-image: linear-gradient(160deg, var(--color-ink) 0%, var(--color-signal-dark) 100%);
 }
 .card-elevated {
   box-shadow: var(--shadow-card);
 }
 .glow-signal {
   box-shadow: var(--shadow-glow);
+}
+
+/* Ajrak trellis — a restrained geometric rule referencing Sindh's signature
+   block-print border pattern. Used once per surface: header base / hero
+   edge / footer crown. Never stack it with other decoration. */
+.pattern-trellis {
+  height: 10px;
+  background-image:
+    linear-gradient(45deg, var(--pattern-color, var(--color-gold)) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--pattern-color, var(--color-gold)) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--pattern-color, var(--color-gold)) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--pattern-color, var(--color-gold)) 75%);
+  background-size: 14px 14px;
+  background-position: 0 0, 0 7px, 7px -7px, -7px 0px;
+  opacity: 0.9;
 }
 
 /* subtle tactile press feedback for buttons — pairs with existing hover states */
@@ -157,6 +180,20 @@ body {
   animation: slide-in-right 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slide-in-left {
+  animation: slide-in-left 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @keyframes blob-float {
   0%,
   100% {
@@ -178,13 +215,13 @@ body {
 
 @keyframes ring-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(91, 79, 224, 0.45);
+    box-shadow: 0 0 0 0 rgba(47, 76, 134, 0.45);
   }
   70% {
-    box-shadow: 0 0 0 14px rgba(91, 79, 224, 0);
+    box-shadow: 0 0 0 14px rgba(47, 76, 134, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(91, 79, 224, 0);
+    box-shadow: 0 0 0 0 rgba(47, 76, 134, 0);
   }
 }
 .animate-ring-pulse {
@@ -203,7 +240,7 @@ body {
   background-image: linear-gradient(
     90deg,
     var(--color-line) 25%,
-    #f0f0f6 37%,
+    #f1ead4 37%,
     var(--color-line) 63%
   );
   background-size: 400% 100%;
