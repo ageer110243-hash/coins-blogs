@@ -143,7 +143,7 @@ export const updateProfile = async (req, res) => {
     if (profilePic) {
       // profilePic arrives as a base64 data URL from the client
       const uploadResponse = await cloudinary.uploader.upload(profilePic, {
-        folder: "chatwithme/avatars",
+        folder: "sindhlink/avatars",
       });
       updates.profilePic = uploadResponse.secure_url;
     }

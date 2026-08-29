@@ -130,7 +130,7 @@ export const sendMessage = async (req, res) => {
     if (image) {
       // image arrives as a base64 data URL from the client
       const uploadResponse = await cloudinary.uploader.upload(image, {
-        folder: "chatwithme/messages",
+        folder: "sindhlink/messages",
       });
       imageUrl = uploadResponse.secure_url;
     }

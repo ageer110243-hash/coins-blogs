@@ -12,9 +12,9 @@ import {
 import { useAuthStore } from "../store/useAuthStore.js";
 
 const navLinkClass = ({ isActive }) =>
-  `flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition ${
+  `relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition after:absolute after:-bottom-[1px] after:left-2.5 after:right-2.5 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-signal after:transition-transform after:duration-300 ${
     isActive
-      ? "bg-signal-soft text-signal"
+      ? "bg-signal-soft text-signal after:scale-x-100"
       : "text-ink-soft hover:bg-panel-soft hover:text-ink"
   }`;
 
@@ -29,7 +29,7 @@ function Navbar() {
             <MessageCircle size={17} strokeWidth={2.4} />
           </span>
           <span className="font-display text-lg font-bold tracking-tight text-ink">
-            Coins<span className="brand-gradient-text">Blogs</span>
+            Sindh<span className="brand-gradient-text">Link</span>
           </span>
         </Link>
 
@@ -91,7 +91,7 @@ function Navbar() {
 
             <button
               onClick={logout}
-              className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink-soft transition hover:border-danger/40 hover:bg-danger-soft hover:text-danger"
+              className="btn-press flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink-soft transition hover:border-danger/40 hover:bg-danger-soft hover:text-danger"
             >
               <LogOut size={15} />
               <span className="hidden sm:inline">Log out</span>
@@ -107,7 +107,7 @@ function Navbar() {
             </Link>
             <Link
               to="/signup"
-              className="brand-gradient rounded-lg px-3 py-1.5 text-sm font-semibold text-white transition hover:opacity-90"
+              className="btn-press brand-gradient rounded-lg px-3 py-1.5 text-sm font-semibold text-white transition hover:opacity-90 hover:shadow-md"
             >
               Sign up
             </Link>

@@ -1,4 +1,4 @@
-# ChatWithMe
+# SindhLink
 
 Full-stack real-time chat app — React + Vite + Tailwind frontend, Express +
 MongoDB (Mongoose) + Socket.IO + JWT backend, images via Cloudinary. No
@@ -32,7 +32,7 @@ Fill in `Backend/.env`:
 
 ```
 PORT=3000
-MONGO_URL=mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/chatwithme
+MONGO_URL=mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/sindhlink
 JWT_SECRET=<any long random string>
 CORS_ORIGIN=http://localhost:5173
 CLOUDINARY_CLOUD_NAME=
@@ -92,7 +92,7 @@ add `0.0.0.0/0` (allow from anywhere) so your Render server can reach it.
    - `CORS_ORIGIN=https://your-frontend.vercel.app` (set this after step 3,
      once you know your Vercel URL — comma-separate if you need more than one)
 7. Deploy. Note the URL Render gives you, e.g.
-   `https://chatwithme-api.onrender.com`.
+   `https://sindhlink-api.onrender.com`.
 
 ### Step 3 — Frontend on Vercel
 
@@ -100,8 +100,8 @@ add `0.0.0.0/0` (allow from anywhere) so your Render server can reach it.
 2. Root directory: `Fronted`
 3. Framework preset: Vite (auto-detected).
 4. Add environment variables:
-   - `VITE_API_URL=https://chatwithme-api.onrender.com/api`
-   - `VITE_SOCKET_URL=https://chatwithme-api.onrender.com`
+   - `VITE_API_URL=https://sindhlink-api.onrender.com/api`
+   - `VITE_SOCKET_URL=https://sindhlink-api.onrender.com`
 5. Deploy. Then go back to Render and set `CORS_ORIGIN` to this Vercel URL
    (step 2.6 above), and redeploy the backend so the cookie/CORS settings
    pick it up.

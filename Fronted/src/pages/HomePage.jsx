@@ -2,16 +2,20 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, GraduationCap, Building2, Newspaper, ArrowRight } from "lucide-react";
 import { usePostStore } from "../store/usePostStore.js";
+import { useBannerStore } from "../store/useBannerStore.js";
 import BusinessCarousel from "../components/BusinessCarousel.jsx";
+import HeroCarousel from "../components/HeroCarousel.jsx";
 
 function HomePage() {
   const navigate = useNavigate();
   const { businesses, isLoadingBusinesses, fetchFeaturedBusinesses } = usePostStore();
+  const { banners, fetchBanners } = useBannerStore();
   const [query, setQuery] = useState("");
 
   useEffect(() => {
     fetchFeaturedBusinesses();
-  }, [fetchFeaturedBusinesses]);
+    fetchBanners();
+  }, [fetchFeaturedBusinesses, fetchBanners]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -26,9 +30,11 @@ function HomePage() {
       <section className="relative overflow-hidden rounded-3xl border border-line bg-panel px-6 py-14 sm:px-10 sm:py-20">
         <div className="animate-blob absolute -top-16 -right-10 h-56 w-56 rounded-full bg-signal-soft blur-3xl" />
         <div className="animate-blob-slow absolute -bottom-16 -left-10 h-56 w-56 rounded-full bg-accent-soft blur-3xl" />
+        <div className="animate-blob-slow absolute left-1/3 top-1/2 hidden h-40 w-40 -translate-y-1/2 rounded-full bg-signal-soft/60 blur-3xl sm:block" />
 
         <div className="relative mx-auto max-w-2xl text-center">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-signal-soft px-3 py-1 text-xs font-medium text-signal">
+            <span className="animate-pulse-dot h-1.5 w-1.5 rounded-full bg-signal" />
             Universities · Academies · Businesses · Posts
           </span>
           <h1 className="animate-fade-in-up mt-4 font-display text-3xl font-bold tracking-tight text-ink sm:text-5xl">
@@ -54,7 +60,7 @@ function HomePage() {
             />
             <button
               type="submit"
-              className="brand-gradient shrink-0 rounded-xl px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+              className="btn-press brand-gradient shrink-0 rounded-xl px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 hover:shadow-md"
             >
               Search
             </button>
@@ -66,18 +72,27 @@ function HomePage() {
           >
             <button
               onClick={() => navigate("/explore")}
-              className="rounded-xl border border-line bg-panel px-4 py-2 text-sm font-medium text-ink-soft transition hover:bg-panel-soft"
+              className="btn-press rounded-xl border border-line bg-panel px-4 py-2 text-sm font-medium text-ink-soft transition hover:bg-panel-soft"
             >
               Explore everything
             </button>
             <button
               onClick={() => navigate("/create-post")}
-              className="brand-gradient rounded-xl px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+              className="btn-press brand-gradient rounded-xl px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 hover:shadow-md"
             >
               Create a post
             </button>
           </div>
         </div>
+
+        {banners.length > 0 && (
+          <div
+            className="animate-fade-in-up relative mx-auto mt-10 max-w-4xl"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <HeroCarousel banners={banners} />
+          </div>
+        )}
       </section>
 
       {/* Category shortcuts */}
@@ -86,13 +101,14 @@ function HomePage() {
           { label: "Universities", icon: GraduationCap, category: "University", desc: "Admissions, programs & deadlines" },
           { label: "Academies", icon: Newspaper, category: "Academy", desc: "Courses, fees & enrollment" },
           { label: "Businesses", icon: Building2, category: "Business", desc: "Local businesses & services" },
-        ].map(({ label, icon: Icon, category, desc }) => (
+        ].map(({ label, icon: Icon, category, desc }, i) => (
           <button
             key={category}
             onClick={() => navigate(`/explore?category=${category}`)}
-            className="card-elevated group flex items-center gap-3 rounded-2xl border border-line bg-panel p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg"
+            className="card-elevated stagger-item group flex items-center gap-3 rounded-2xl border border-line bg-panel p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg"
+            style={{ animationDelay: `${0.1 + i * 0.08}s` }}
           >
-            <span className="brand-gradient grid h-11 w-11 shrink-0 place-items-center rounded-xl text-white">
+            <span className="brand-gradient grid h-11 w-11 shrink-0 place-items-center rounded-xl text-white transition duration-300 group-hover:scale-110 group-hover:rotate-3">
               <Icon size={20} />
             </span>
             <span className="flex-1">

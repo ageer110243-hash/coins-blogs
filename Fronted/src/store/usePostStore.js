@@ -19,6 +19,9 @@ export const usePostStore = create((set, get) => ({
   isLoadingMyPosts: false,
   isSavingPost: false,
 
+  adminPosts: [], // every post, any author — admin panel's post manager
+  isLoadingAdminPosts: false,
+
   filters: { search: "", city: "All Cities", category: "All" },
   setFilters: (partial) => set({ filters: { ...get().filters, ...partial } }),
 
@@ -95,10 +98,25 @@ export const usePostStore = create((set, get) => ({
     }
   },
 
+  fetchAdminPosts: async () => {
+    set({ isLoadingAdminPosts: true });
+    try {
+      const res = await axiosInstance.get("/posts/admin/list");
+      set({ adminPosts: res.data });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Couldn't load posts");
+    } finally {
+      set({ isLoadingAdminPosts: false });
+    }
+  },
+
   deletePost: async (id) => {
     try {
       await axiosInstance.delete(`/posts/${id}`);
-      set({ myPosts: get().myPosts.filter((p) => p._id !== id) });
+      set({
+        myPosts: get().myPosts.filter((p) => p._id !== id),
+        adminPosts: get().adminPosts.filter((p) => p._id !== id),
+      });
       toast.success("Post deleted");
     } catch (error) {
       toast.error(error?.response?.data?.message || "Couldn't delete post");

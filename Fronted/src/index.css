@@ -81,6 +81,14 @@ body {
   box-shadow: var(--shadow-glow);
 }
 
+/* subtle tactile press feedback for buttons — pairs with existing hover states */
+.btn-press {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+.btn-press:active {
+  transform: scale(0.96);
+}
+
 /* ---------- Keyframes ---------- */
 @keyframes pulse-dot {
   0%,
@@ -218,6 +226,20 @@ body {
 
 .stagger-item {
   animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.page-enter {
+  animation: page-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

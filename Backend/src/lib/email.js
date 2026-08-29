@@ -26,18 +26,18 @@ export const sendPasswordResetEmail = async (toEmail, resetUrl) => {
   const mailer = getTransporter();
 
   if (!mailer) {
-    console.log(`\n[CoinsBlogs] SMTP not configured — password reset link for ${toEmail}:\n${resetUrl}\n`);
+    console.log(`\n[SindhLink] SMTP not configured — password reset link for ${toEmail}:\n${resetUrl}\n`);
     return { delivered: false };
   }
 
   await mailer.sendMail({
-    from: process.env.SMTP_FROM || `"CoinsBlogs" <no-reply@coinsblogs.app>`,
+    from: process.env.SMTP_FROM || `"SindhLink" <no-reply@sindhlink.app>`,
     to: toEmail,
-    subject: "Reset your CoinsBlogs password",
+    subject: "Reset your SindhLink password",
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
         <h2 style="color:#5b4fe0;">Reset your password</h2>
-        <p>We got a request to reset the password for your CoinsBlogs account.</p>
+        <p>We got a request to reset the password for your SindhLink account.</p>
         <p>
           <a href="${resetUrl}" style="display:inline-block;background:#5b4fe0;color:#fff;
              padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;">
@@ -60,25 +60,25 @@ export const sendWelcomeEmail = async (toEmail, fullName) => {
   const mailer = getTransporter();
 
   if (!mailer) {
-    console.log(`\n[CoinsBlogs] SMTP not configured — welcome email skipped for ${toEmail}\n`);
+    console.log(`\n[SindhLink] SMTP not configured — welcome email skipped for ${toEmail}\n`);
     return { delivered: false };
   }
 
   try {
     await mailer.sendMail({
-      from: process.env.SMTP_FROM || `"CoinsBlogs" <no-reply@coinsblogs.app>`,
+      from: process.env.SMTP_FROM || `"SindhLink" <no-reply@sindhlink.app>`,
       to: toEmail,
-      subject: "Welcome to CoinsBlogs 👋",
+      subject: "Welcome to SindhLink 👋",
       html: `
         <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
           <h2 style="color:#5b4fe0;">Welcome, ${fullName || "there"}!</h2>
-          <p>Your CoinsBlogs account (${toEmail}) is ready to go.</p>
+          <p>Your SindhLink account (${toEmail}) is ready to go.</p>
           <p>Jump back in and start a conversation whenever you're ready.</p>
           <p>
             <a href="${process.env.CLIENT_URL || "http://localhost:5173"}"
                style="display:inline-block;background:#5b4fe0;color:#fff;
                padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;">
-              Open CoinsBlogs
+              Open SindhLink
             </a>
           </p>
           <p style="color:#888;font-size:13px;">If you didn't create this account, you can ignore this email.</p>

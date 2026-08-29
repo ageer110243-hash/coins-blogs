@@ -1,5 +1,6 @@
 import express from "express";
 import { protectRoute, attachUserIfPresent } from "../middleware/auth.middleware.js";
+import { adminRoute } from "../middleware/admin.middleware.js";
 import {
   getPosts,
   getPostById,
@@ -7,13 +8,15 @@ import {
   updatePost,
   deletePost,
   getMyPosts,
+  getAllPostsForAdmin,
 } from "../controllers/post.controller.js";
 
 const router = express.Router();
 
-// NOTE: /mine/list must be registered before /:id, otherwise "mine" would
-// be swallowed by the :id param route.
+// NOTE: /mine/list and /admin/list must be registered before /:id,
+// otherwise those literal segments would be swallowed by the :id param route.
 router.get("/mine/list", protectRoute, getMyPosts);
+router.get("/admin/list", protectRoute, adminRoute, getAllPostsForAdmin);
 
 router.get("/", getPosts);
 // attachUserIfPresent (not protectRoute) — post detail stays public for

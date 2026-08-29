@@ -10,6 +10,7 @@ import messageRoutes from "./routes/message.route.js";
 import adminRoutes from "./routes/admin.route.js";
 import requestRoutes from "./routes/request.route.js";
 import postRoutes from "./routes/post.route.js";
+import bannerRoutes from "./routes/banner.route.js";
 
 const app = express();
 const isProduction = process.env.NODE_ENV === "production";
@@ -57,6 +58,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/banners", bannerRoutes);
 
 app.use("/api", (_req, res) => {
   res.status(404).json({ message: "Route not found" });

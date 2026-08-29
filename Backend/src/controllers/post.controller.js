@@ -122,7 +122,7 @@ export const createPost = async (req, res) => {
       // image arrives as a base64 data URL from the client, same as
       // profilePic / chat message images elsewhere in this app
       const uploadResponse = await cloudinary.uploader.upload(image, {
-        folder: "chatwithme/posts",
+        folder: "sindhlink/posts",
       });
       imageUrl = uploadResponse.secure_url;
     }
@@ -212,7 +212,7 @@ export const updatePost = async (req, res) => {
 
     if (image) {
       const uploadResponse = await cloudinary.uploader.upload(image, {
-        folder: "chatwithme/posts",
+        folder: "sindhlink/posts",
       });
       post.image = uploadResponse.secure_url;
     }
@@ -249,6 +249,20 @@ export const deletePost = async (req, res) => {
     res.status(200).json({ message: "Post deleted" });
   } catch (error) {
     console.error("deletePost error:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// GET /api/posts/admin/list — admin only. Every post (any author), newest
+// first, for the admin panel's post manager.
+export const getAllPostsForAdmin = async (_req, res) => {
+  try {
+    const posts = await Post.find()
+      .sort({ createdAt: -1 })
+      .populate("author", "fullName profilePic");
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("getAllPostsForAdmin error:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };

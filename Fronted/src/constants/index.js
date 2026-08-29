@@ -84,7 +84,7 @@ export const DUMMY_CONTACTS = [
 // Extra profile fields used only by the admin dashboard demo below.
 export const DUMMY_USERS = DUMMY_CONTACTS.map((c, i) => ({
   ...c,
-  email: `${c.fullName.split(" ")[0].toLowerCase()}@coinsblogs.app`,
+  email: `${c.fullName.split(" ")[0].toLowerCase()}@sindhlink.app`,
   role: i === 0 ? "admin" : "member",
   status: i === 3 ? "suspended" : "active",
   joinedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * (30 + i * 17)),

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Users,
   MessageSquare,
@@ -9,9 +10,22 @@ import {
   CheckCircle2,
   Trash2,
   ShieldCheck,
+  ImagePlus,
+  Images,
+  Eye,
+  EyeOff,
+  Loader,
+  FileText,
+  PlusCircle,
+  ListChecks,
+  MapPin,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import { useAdminStore } from "../store/useAdminStore.js";
+import { useBannerStore } from "../store/useBannerStore.js";
+import { usePostStore } from "../store/usePostStore.js";
 import { formatLastSeen } from "../lib/utils.js";
+import PostForm from "../components/PostForm.jsx";
 
 function initials(name = "") {
   return name
@@ -37,6 +51,358 @@ function StatCard({ icon: Icon, label, value, delay }) {
         {value}
       </p>
       <p className="text-xs text-ink-faint">{label}</p>
+    </div>
+  );
+}
+
+// Lets an admin add/remove the promotional images shown in the Home page
+// hero carousel (see HeroCarousel.jsx + useBannerStore.js). Kept as its
+// own section here rather than a separate route since it's a small,
+// occasional task.
+function BannerManager() {
+  const {
+    adminBanners,
+    isLoadingAdminBanners,
+    isSavingBanner,
+    fetchAdminBanners,
+    createBanner,
+    toggleBannerActive,
+    deleteBanner,
+  } = useBannerStore();
+  const fileInputRef = useRef(null);
+
+  const [imagePreview, setImagePreview] = useState("");
+  const [imageData, setImageData] = useState("");
+  const [title, setTitle] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [link, setLink] = useState("");
+
+  useEffect(() => {
+    fetchAdminBanners();
+  }, [fetchAdminBanners]);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImagePreview(reader.result);
+      setImageData(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const resetForm = () => {
+    setImagePreview("");
+    setImageData("");
+    setTitle("");
+    setBusinessName("");
+    setLink("");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!imageData) {
+      toast.error("Please choose an image for the slide");
+      return;
+    }
+    if (!title.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    const created = await createBanner({
+      image: imageData,
+      title: title.trim(),
+      businessName: businessName.trim(),
+      link: link.trim(),
+    });
+    if (created) resetForm();
+  };
+
+  return (
+    <div className="card-elevated animate-fade-in-up mt-6 rounded-2xl border border-line bg-panel">
+      <div className="flex items-center gap-2 border-b border-line p-4">
+        <Images size={16} className="text-signal" />
+        <h2 className="font-display text-sm font-semibold text-ink">
+          Home page hero carousel
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 p-4 lg:grid-cols-[minmax(0,320px)_1fr]">
+        {/* Add banner form */}
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <span className="text-xs font-medium text-ink-soft">Promo image</span>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-1 flex aspect-[16/9] w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-line bg-panel-soft transition hover:border-signal"
+            >
+              {imagePreview ? (
+                <img src={imagePreview} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="flex flex-col items-center gap-1.5 text-ink-faint">
+                  <ImagePlus size={20} />
+                  <span className="text-xs">Click to upload</span>
+                </span>
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={handleImageChange}
+            />
+          </div>
+
+          <label className="block">
+            <span className="text-xs font-medium text-ink-soft">Title</span>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. 20% off this week"
+              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm text-ink outline-none focus:border-signal"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-xs font-medium text-ink-soft">Business name (optional)</span>
+            <input
+              value={businessName}
+              onChange={(e) => setBusinessName(e.target.value)}
+              placeholder="e.g. Sindh Bakers"
+              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm text-ink outline-none focus:border-signal"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-xs font-medium text-ink-soft">
+              Link when clicked (optional)
+            </span>
+            <input
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              placeholder="/posts/postId or https://..."
+              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm text-ink outline-none focus:border-signal"
+            />
+            <span className="mt-1 block text-[11px] text-ink-faint">
+              Paste a business's post URL (e.g. /posts/123) to promote it, or any
+              external link. Leave blank for a non-clickable slide.
+            </span>
+          </label>
+
+          <button
+            type="submit"
+            disabled={isSavingBanner}
+            className="brand-gradient flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+          >
+            {isSavingBanner ? <Loader size={15} className="animate-spin" /> : <ImagePlus size={15} />}
+            {isSavingBanner ? "Adding..." : "Add banner"}
+          </button>
+        </form>
+
+        {/* Existing banners */}
+        <div>
+          {isLoadingAdminBanners ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-shimmer aspect-[16/9] rounded-xl" />
+              ))}
+            </div>
+          ) : adminBanners.length === 0 ? (
+            <div className="grid h-full min-h-[160px] place-items-center rounded-xl border border-dashed border-line text-center text-sm text-ink-faint">
+              No banners yet — add one to promote a business on the Home page.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {adminBanners.map((b) => (
+                <div
+                  key={b._id}
+                  className="overflow-hidden rounded-xl border border-line bg-panel-soft"
+                >
+                  <div className="relative aspect-[16/9] w-full">
+                    <img src={b.image} alt={b.title} className="h-full w-full object-cover" />
+                    {!b.isActive && (
+                      <div className="absolute inset-0 grid place-items-center bg-ink/50 text-xs font-semibold text-white">
+                        Hidden
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <p className="truncate text-sm font-medium text-ink">{b.title}</p>
+                    {b.businessName && (
+                      <p className="truncate text-xs text-ink-faint">{b.businessName}</p>
+                    )}
+                    <div className="mt-2 flex items-center justify-end gap-1.5">
+                      <button
+                        onClick={() => toggleBannerActive(b._id, !b.isActive)}
+                        title={b.isActive ? "Hide from Home page" : "Show on Home page"}
+                        className="rounded-lg p-1.5 text-ink-soft transition hover:bg-panel hover:text-signal"
+                      >
+                        {b.isActive ? <Eye size={15} /> : <EyeOff size={15} />}
+                      </button>
+                      <button
+                        onClick={() => deleteBanner(b._id)}
+                        title="Delete banner"
+                        className="rounded-lg p-1.5 text-ink-soft transition hover:bg-danger-soft hover:text-danger"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Lets an admin publish a post on behalf of the community (same form as
+// the public "Create a Post" page) and browse/delete any post from one
+// place, without needing to hunt it down on the Explore page first.
+function PostManager() {
+  const { adminPosts, isLoadingAdminPosts, isSavingPost, fetchAdminPosts, createPost, deletePost } =
+    usePostStore();
+  const [tab, setTab] = useState("create"); // "create" | "manage"
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (tab === "manage") fetchAdminPosts();
+  }, [tab, fetchAdminPosts]);
+
+  const handleCreate = async (payload) => {
+    const created = await createPost(payload);
+    if (created) {
+      fetchAdminPosts();
+    }
+    return created;
+  };
+
+  const handleDelete = async (id, title) => {
+    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    await deletePost(id);
+  };
+
+  const filtered = adminPosts.filter(
+    (p) =>
+      p.title.toLowerCase().includes(query.toLowerCase()) ||
+      (p.organizationName || "").toLowerCase().includes(query.toLowerCase()) ||
+      (p.author?.fullName || "").toLowerCase().includes(query.toLowerCase())
+  );
+
+  return (
+    <div className="card-elevated animate-fade-in-up mt-6 rounded-2xl border border-line bg-panel">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line p-4">
+        <div className="flex items-center gap-2">
+          <FileText size={16} className="text-signal" />
+          <h2 className="font-display text-sm font-semibold text-ink">Posts</h2>
+        </div>
+
+        <div className="flex gap-1 rounded-lg bg-panel-soft p-1">
+          <button
+            onClick={() => setTab("create")}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+              tab === "create" ? "bg-panel text-signal shadow-sm" : "text-ink-faint hover:text-ink"
+            }`}
+          >
+            <PlusCircle size={13} />
+            Create Post
+          </button>
+          <button
+            onClick={() => setTab("manage")}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+              tab === "manage" ? "bg-panel text-signal shadow-sm" : "text-ink-faint hover:text-ink"
+            }`}
+          >
+            <ListChecks size={13} />
+            Manage All
+          </button>
+        </div>
+      </div>
+
+      {tab === "create" ? (
+        <div className="animate-fade-in-up p-4 sm:p-6">
+          <p className="mb-4 text-xs text-ink-faint">
+            Published under your admin account — shows up on Explore and the Home page just
+            like any other post.
+          </p>
+          <PostForm onSubmit={handleCreate} isSaving={isSavingPost} submitLabel="Publish Post" />
+        </div>
+      ) : (
+        <div className="animate-fade-in-up p-4">
+          <div className="relative mb-4">
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search all posts"
+              className="w-full rounded-lg border border-line bg-panel-soft py-2 pl-9 pr-3 text-sm outline-none transition focus:border-signal sm:w-72"
+            />
+          </div>
+
+          {isLoadingAdminPosts ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-shimmer h-16 rounded-xl" />
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="grid min-h-[140px] place-items-center rounded-xl border border-dashed border-line text-center text-sm text-ink-faint">
+              {adminPosts.length === 0 ? "No posts yet." : `No posts match "${query}"`}
+            </div>
+          ) : (
+            <div className="thin-scroll max-h-[420px] space-y-2 overflow-y-auto pr-1">
+              {filtered.map((p, i) => (
+                <div
+                  key={p._id}
+                  className="stagger-item flex items-center gap-3 rounded-xl border border-line p-2.5 transition hover:bg-panel-soft"
+                  style={{ animationDelay: `${Math.min(i, 8) * 0.03}s` }}
+                >
+                  <div className="h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-panel-soft">
+                    {p.image ? (
+                      <img src={p.image} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center text-ink-faint">
+                        <FileText size={16} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-ink">{p.title}</p>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-ink-faint">
+                      <span className="rounded-full bg-signal-soft px-1.5 py-0.5 text-signal">
+                        {p.category}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin size={11} />
+                        {p.city}
+                      </span>
+                      <span>by {p.author?.fullName || "unknown"}</span>
+                    </div>
+                  </div>
+                  <Link
+                    to={`/posts/${p._id}`}
+                    className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-ink-soft transition hover:bg-panel hover:text-signal"
+                  >
+                    View
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(p._id, p.title)}
+                    title="Delete post"
+                    className="shrink-0 rounded-lg p-1.5 text-ink-soft transition hover:bg-danger-soft hover:text-danger"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -87,7 +453,7 @@ function AdminPage() {
             Admin dashboard
           </h1>
           <p className="text-sm text-ink-faint">
-            Live data from your CoinsBlogs database.
+            Live data from your SindhLink database.
           </p>
         </div>
         <span className="flex items-center gap-1.5 rounded-full bg-online-soft px-3 py-1.5 text-xs font-semibold text-online">
@@ -301,6 +667,9 @@ function AdminPage() {
           </table>
         </div>
       </div>
+
+      <PostManager />
+      <BannerManager />
     </div>
   );
 }

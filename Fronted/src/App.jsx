@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { Loader } from "lucide-react";
 import Navbar from "./components/Navbar.jsx";
@@ -21,6 +21,7 @@ import { useAuthStore } from "./store/useAuthStore.js";
 
 function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  const location = useLocation();
 
   useEffect(() => {
     checkAuth();
@@ -38,6 +39,7 @@ function App() {
     <GoogleAuthProvider>
       <div className="min-h-svh bg-paper">
         <Navbar />
+        <div key={location.pathname} className="page-enter">
         <Routes>
           {/* Public directory pages — Home / Explore / About / Post detail
               are browsable without logging in. */}
@@ -88,6 +90,7 @@ function App() {
             element={authUser ? <SettingsPage /> : <Navigate to="/login" />}
           />
         </Routes>
+        </div>
         <ProfileModal />
         <Toaster position="top-center" />
       </div>
