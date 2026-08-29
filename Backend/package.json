@@ -1,11 +1,12 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "SindhLink API — Express + MongoDB + Socket.IO",
+  "description": "SindhLink API \u2014 Express + MongoDB + Socket.IO",
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "seed:universities": "node src/seed/seedUniversities.js"
   },
   "keywords": [],
   "type": "module",

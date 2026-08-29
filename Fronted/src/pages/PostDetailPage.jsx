@@ -148,7 +148,7 @@ function PostDetailPage() {
   const contact = post.contact || {};
 
   const applySteps =
-    post.category === "University" && post.university?.howToApply
+    (post.category === "University" || post.category === "Admission") && post.university?.howToApply
       ? post.university.howToApply
           .split(/\r?\n/)
           .map((s) => s.trim())
@@ -206,8 +206,8 @@ function PostDetailPage() {
             {post.description}
           </p>
 
-          {/* University details */}
-          {post.category === "University" && post.university && (
+          {/* University / Admission details */}
+          {(post.category === "University" || post.category === "Admission") && post.university && (
             <section className="mt-8 border-t border-line pt-6">
               <h2 className="font-display text-lg font-semibold text-ink">Admission Information</h2>
               <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">

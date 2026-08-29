@@ -105,7 +105,7 @@ function PostForm({ onSubmit, isSaving, submitLabel = "Publish Post" }) {
       image: imageData || undefined,
       contact,
     };
-    if (category === "University") payload.university = university;
+    if (category === "University" || category === "Admission") payload.university = university;
     if (category === "Academy") payload.academy = academy;
     if (category === "Business") payload.business = business;
 
@@ -160,9 +160,11 @@ function PostForm({ onSubmit, isSaving, submitLabel = "Publish Post" }) {
       <Input label="Organization Name (optional)" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder="e.g. XYZ University" />
 
       {/* Category-specific fields */}
-      {category === "University" && (
+      {(category === "University" || category === "Admission") && (
         <div className="animate-fade-in-up space-y-4 rounded-xl border border-line bg-panel-soft p-4">
-          <p className="text-sm font-semibold text-ink">University Details</p>
+          <p className="text-sm font-semibold text-ink">
+            {category === "Admission" ? "Admission Details" : "University Details"}
+          </p>
           <Textarea label="Programs" rows={2} value={university.programs} onChange={(e) => setUniversity({ ...university, programs: e.target.value })} placeholder="e.g. BS Computer Science, BBA" />
           <Textarea label="Eligibility" rows={2} value={university.eligibility} onChange={(e) => setUniversity({ ...university, eligibility: e.target.value })} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
