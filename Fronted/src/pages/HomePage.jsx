@@ -43,7 +43,7 @@ const HOW_IT_WORKS = [
 // so the hero always has a real visual instead of an empty gap.
 function HeroFallback() {
   return (
-    <div className="ink-gradient relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden sm:aspect-[16/7]">
+    <div className="ink-gradient relative flex h-56 w-full items-center justify-center overflow-hidden sm:h-72 md:h-80 lg:h-96">
       <div className="animate-blob absolute -top-16 -right-10 h-64 w-64 rounded-full bg-signal-light/25 blur-3xl" />
       <div className="animate-blob-slow absolute -bottom-20 -left-14 h-64 w-64 rounded-full bg-gold/20 blur-3xl" />
       <div

@@ -74,7 +74,7 @@ function HeroCarousel({ banners, fullBleed = false }) {
       <div
         className={
           fullBleed
-            ? "relative aspect-[4/3] w-full sm:aspect-[16/7]"
+            ? "relative h-56 w-full sm:h-72 md:h-80 lg:h-96"
             : "relative aspect-[16/9] w-full sm:aspect-[21/9]"
         }
       >
