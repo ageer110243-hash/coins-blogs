@@ -19,6 +19,53 @@ const emptyUniversity = {
 const emptyAcademy = { courses: "", courseDuration: "", fee: "", timings: "", admissionInfo: "" };
 const emptyBusiness = { businessCategory: "", services: "", openingHours: "" };
 
+const emptyContact = { phone: "", email: "", address: "", website: "" };
+
+// Turns a Date/ISO-string/null into the "YYYY-MM-DD" shape <input type="date">
+// expects. Anything unparseable just becomes an empty string.
+function toDateInputValue(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toISOString().slice(0, 10);
+}
+
+// Builds the form's initial state from an existing post (edit mode) or
+// empty defaults (create mode).
+function buildInitialState(post) {
+  if (!post) {
+    return {
+      title: "",
+      description: "",
+      category: "General",
+      city: CITY_OPTIONS[0],
+      organizationName: "",
+      imagePreview: "",
+      contact: emptyContact,
+      university: emptyUniversity,
+      academy: emptyAcademy,
+      business: emptyBusiness,
+    };
+  }
+  return {
+    title: post.title || "",
+    description: post.description || "",
+    category: post.category || "General",
+    city: post.city || CITY_OPTIONS[0],
+    organizationName: post.organizationName || "",
+    imagePreview: post.image || "",
+    contact: { ...emptyContact, ...post.contact },
+    university: {
+      ...emptyUniversity,
+      ...post.university,
+      admissionStart: toDateInputValue(post.university?.admissionStart),
+      admissionDeadline: toDateInputValue(post.university?.admissionDeadline),
+    },
+    academy: { ...emptyAcademy, ...post.academy },
+    business: { ...emptyBusiness, ...post.business },
+  };
+}
+
 function Input({ label, ...props }) {
   return (
     <label className="block">
@@ -43,25 +90,28 @@ function Textarea({ label, ...props }) {
   );
 }
 
-// Shared by /create-post (regular users) and the admin panel's "Create
-// Post" tab (admins can publish on anyone's behalf). onSubmit receives the
-// same payload shape the /api/posts endpoint expects; the caller decides
-// what happens after (navigate, refresh a list, etc).
-function PostForm({ onSubmit, isSaving, submitLabel = "Publish Post" }) {
+// Shared by /create-post (regular users), the admin panel's "Create Post"
+// tab, and the admin panel's "Edit Post" flow (pass the existing post as
+// `initialPost` to prefill every field, including its current image).
+// onSubmit receives the same payload shape the /api/posts endpoint
+// expects; the caller decides what happens after (navigate, refresh a
+// list, close a modal, etc).
+function PostForm({ onSubmit, isSaving, submitLabel = "Publish Post", initialPost = null }) {
   const fileInputRef = useRef(null);
+  const initial = buildInitialState(initialPost);
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("General");
-  const [city, setCity] = useState(CITY_OPTIONS[0]);
-  const [organizationName, setOrganizationName] = useState("");
-  const [imagePreview, setImagePreview] = useState("");
-  const [imageData, setImageData] = useState("");
+  const [title, setTitle] = useState(initial.title);
+  const [description, setDescription] = useState(initial.description);
+  const [category, setCategory] = useState(initial.category);
+  const [city, setCity] = useState(initial.city);
+  const [organizationName, setOrganizationName] = useState(initial.organizationName);
+  const [imagePreview, setImagePreview] = useState(initial.imagePreview);
+  const [imageData, setImageData] = useState(""); // only set when a NEW file is picked
 
-  const [contact, setContact] = useState({ phone: "", email: "", address: "", website: "" });
-  const [university, setUniversity] = useState(emptyUniversity);
-  const [academy, setAcademy] = useState(emptyAcademy);
-  const [business, setBusiness] = useState(emptyBusiness);
+  const [contact, setContact] = useState(initial.contact);
+  const [university, setUniversity] = useState(initial.university);
+  const [academy, setAcademy] = useState(initial.academy);
+  const [business, setBusiness] = useState(initial.business);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -76,17 +126,18 @@ function PostForm({ onSubmit, isSaving, submitLabel = "Publish Post" }) {
   };
 
   const resetForm = () => {
-    setTitle("");
-    setDescription("");
-    setCategory("General");
-    setCity(CITY_OPTIONS[0]);
-    setOrganizationName("");
-    setImagePreview("");
+    const fresh = buildInitialState(null);
+    setTitle(fresh.title);
+    setDescription(fresh.description);
+    setCategory(fresh.category);
+    setCity(fresh.city);
+    setOrganizationName(fresh.organizationName);
+    setImagePreview(fresh.imagePreview);
     setImageData("");
-    setContact({ phone: "", email: "", address: "", website: "" });
-    setUniversity(emptyUniversity);
-    setAcademy(emptyAcademy);
-    setBusiness(emptyBusiness);
+    setContact(fresh.contact);
+    setUniversity(fresh.university);
+    setAcademy(fresh.academy);
+    setBusiness(fresh.business);
   };
 
   const handleSubmit = async (e) => {
@@ -102,15 +153,17 @@ function PostForm({ onSubmit, isSaving, submitLabel = "Publish Post" }) {
       category,
       city,
       organizationName,
-      image: imageData || undefined,
+      image: imageData || undefined, // omit unless a new image was picked — edit mode keeps the existing one
       contact,
     };
     if (category === "University" || category === "Admission") payload.university = university;
     if (category === "Academy") payload.academy = academy;
     if (category === "Business") payload.business = business;
 
-    const created = await onSubmit(payload);
-    if (created) resetForm();
+    const result = await onSubmit(payload);
+    // Only clear the form back to blank in "create" mode — an edit should
+    // leave the (now-saved) values visible rather than wiping them.
+    if (result && !initialPost) resetForm();
   };
 
   return (

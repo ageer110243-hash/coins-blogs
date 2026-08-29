@@ -19,6 +19,7 @@ import {
   PlusCircle,
   ListChecks,
   MapPin,
+  Pencil,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAdminStore } from "../store/useAdminStore.js";
@@ -265,10 +266,18 @@ function BannerManager() {
 // the public "Create a Post" page) and browse/delete any post from one
 // place, without needing to hunt it down on the Explore page first.
 function PostManager() {
-  const { adminPosts, isLoadingAdminPosts, isSavingPost, fetchAdminPosts, createPost, deletePost } =
-    usePostStore();
+  const {
+    adminPosts,
+    isLoadingAdminPosts,
+    isSavingPost,
+    fetchAdminPosts,
+    createPost,
+    updatePost,
+    deletePost,
+  } = usePostStore();
   const [tab, setTab] = useState("create"); // "create" | "manage"
   const [query, setQuery] = useState("");
+  const [editingPost, setEditingPost] = useState(null);
 
   useEffect(() => {
     if (tab === "manage") fetchAdminPosts();
@@ -280,6 +289,12 @@ function PostManager() {
       fetchAdminPosts();
     }
     return created;
+  };
+
+  const handleUpdate = async (payload) => {
+    const result = await updatePost(editingPost._id, payload);
+    if (result) setEditingPost(null); // back to the list once saved
+    return result;
   };
 
   const handleDelete = async (id, title) => {
@@ -304,7 +319,10 @@ function PostManager() {
 
         <div className="flex gap-1 rounded-lg bg-panel-soft p-1">
           <button
-            onClick={() => setTab("create")}
+            onClick={() => {
+              setTab("create");
+              setEditingPost(null);
+            }}
             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition ${
               tab === "create" ? "bg-panel text-signal shadow-sm" : "text-ink-faint hover:text-ink"
             }`}
@@ -313,7 +331,10 @@ function PostManager() {
             Create Post
           </button>
           <button
-            onClick={() => setTab("manage")}
+            onClick={() => {
+              setTab("manage");
+              setEditingPost(null);
+            }}
             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition ${
               tab === "manage" ? "bg-panel text-signal shadow-sm" : "text-ink-faint hover:text-ink"
             }`}
@@ -331,6 +352,28 @@ function PostManager() {
             like any other post.
           </p>
           <PostForm onSubmit={handleCreate} isSaving={isSavingPost} submitLabel="Publish Post" />
+        </div>
+      ) : editingPost ? (
+        <div className="animate-fade-in-up p-4 sm:p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-xs text-ink-faint">
+              Editing <span className="font-medium text-ink">{editingPost.title}</span> — pick a
+              new image below to replace the current one, or leave it as is.
+            </p>
+            <button
+              onClick={() => setEditingPost(null)}
+              className="shrink-0 text-xs font-medium text-ink-soft transition hover:text-ink"
+            >
+              Cancel
+            </button>
+          </div>
+          <PostForm
+            key={editingPost._id}
+            initialPost={editingPost}
+            onSubmit={handleUpdate}
+            isSaving={isSavingPost}
+            submitLabel="Save Changes"
+          />
         </div>
       ) : (
         <div className="animate-fade-in-up p-4">
@@ -390,6 +433,13 @@ function PostManager() {
                   >
                     View
                   </Link>
+                  <button
+                    onClick={() => setEditingPost(p)}
+                    title="Edit post"
+                    className="shrink-0 rounded-lg p-1.5 text-ink-soft transition hover:bg-signal-soft hover:text-signal"
+                  >
+                    <Pencil size={15} />
+                  </button>
                   <button
                     onClick={() => handleDelete(p._id, p.title)}
                     title="Delete post"

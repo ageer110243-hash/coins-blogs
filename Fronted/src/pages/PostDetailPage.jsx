@@ -143,7 +143,7 @@ function PostDetailPage() {
     );
   }
 
-  const isOwner = authUser && post.author?._id === authUser._id;
+  const isOwner = Boolean(authUser && post.author?._id && String(post.author._id) === String(authUser._id));
   const canManage = isOwner || authUser?.role === "admin";
   const contact = post.contact || {};
 

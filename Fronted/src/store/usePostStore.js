@@ -98,6 +98,28 @@ export const usePostStore = create((set, get) => ({
     }
   },
 
+  updatePost: async (id, data) => {
+    set({ isSavingPost: true });
+    try {
+      const res = await axiosInstance.put(`/posts/${id}`, data);
+      // Keep every cache that might be showing this post in sync, instead
+      // of forcing a full refetch.
+      const replace = (list) => list.map((p) => (p._id === id ? res.data : p));
+      set((state) => ({
+        myPosts: replace(state.myPosts),
+        adminPosts: replace(state.adminPosts),
+        activePost: state.activePost?._id === id ? res.data : state.activePost,
+      }));
+      toast.success("Post updated");
+      return res.data;
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Couldn't update post");
+      return null;
+    } finally {
+      set({ isSavingPost: false });
+    }
+  },
+
   fetchAdminPosts: async () => {
     set({ isLoadingAdminPosts: true });
     try {
