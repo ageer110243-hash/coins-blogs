@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const AUTOPLAY_MS = 4500;
+const AUTOPLAY_MS = 2000;
 const SWIPE_THRESHOLD_PX = 40;
 
 // Admin-managed promo slides for the Home page hero. Dependency-free
@@ -88,16 +88,28 @@ function HeroCarousel({ banners, fullBleed = false }) {
             <button
               type="button"
               onClick={() => handleSlideClick(banner)}
-              className={`block h-full w-full ${banner.link ? "cursor-pointer" : "cursor-default"}`}
+              className={`relative block h-full w-full overflow-hidden ${banner.link ? "cursor-pointer" : "cursor-default"}`}
               tabIndex={i === index ? 0 : -1}
             >
+              {/* Blurred, zoomed copy fills the frame edge-to-edge so there's
+                  never empty letterbox space, no matter the image's aspect
+                  ratio... */}
+              <img
+                src={banner.image}
+                alt=""
+                aria-hidden="true"
+                draggable={false}
+                className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl"
+              />
+              {/* ...while the real image sits on top, uncropped, so the
+                  whole picture is always visible. */}
               <img
                 src={banner.image}
                 alt={banner.title}
-                className="h-full w-full object-cover"
+                className="relative h-full w-full object-contain"
                 draggable={false}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
               <div className={`absolute inset-x-0 bottom-0 text-left ${fullBleed ? "p-4 sm:p-8" : "p-3 sm:p-5"}`}>
                 {banner.businessName && (
                   <span className="inline-block rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm sm:text-xs">

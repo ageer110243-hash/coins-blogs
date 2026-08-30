@@ -34,6 +34,13 @@ function App() {
     checkAuth();
   }, [checkAuth]);
 
+  // Without this, React Router just swaps the page content in place —
+  // if you were scrolled down on the previous page, the new page opens
+  // still scrolled down instead of starting at the top.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   if (isCheckingAuth) {
     return (
       <div className="grid h-svh place-items-center">
