@@ -172,9 +172,21 @@ function PostDetailPage() {
       </button>
 
       <div className="card-elevated mt-4 overflow-hidden rounded-3xl border border-line bg-panel">
-        <div className="aspect-[16/7] w-full overflow-hidden bg-panel-soft">
+        <div className="relative aspect-[16/7] w-full overflow-hidden bg-panel-soft">
           {post.image ? (
-            <img src={post.image} alt={post.title} className="h-full w-full object-cover" />
+            <>
+              <img
+                src={post.image}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl"
+              />
+              <img
+                src={post.image}
+                alt={post.title}
+                className="relative h-full w-full object-contain"
+              />
+            </>
           ) : (
             <div className="grid h-full w-full place-items-center text-ink-faint">
               <ImageOff size={32} />
