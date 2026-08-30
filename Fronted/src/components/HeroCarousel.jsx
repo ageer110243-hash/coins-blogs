@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const AUTOPLAY_MS = 2000;
+const AUTOPLAY_MS = 5000;
 const SWIPE_THRESHOLD_PX = 40;
 
 // Admin-managed promo slides for the Home page hero. Dependency-free
