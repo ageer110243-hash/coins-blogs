@@ -16,19 +16,27 @@ import LoginPage from "./pages/LoginPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
-import AdminPage from "./pages/AdminPage.jsx";
+import AdminLayout from "./components/AdminLayout.jsx";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage.jsx";
+import AdminUsersPage from "./pages/admin/AdminUsersPage.jsx";
+import AdminPostsPage from "./pages/admin/AdminPostsPage.jsx";
+import AdminBannersPage from "./pages/admin/AdminBannersPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import { useAuthStore } from "./store/useAuthStore.js";
 
 // Pages that own their own full-viewport layout — the footer would either
 // get pushed off-screen or introduce a second scrollbar, so it's skipped
 // on these routes only.
-const NO_FOOTER_PREFIXES = ["/chat", "/login", "/signup", "/forgot-password", "/reset-password"];
+const NO_FOOTER_PREFIXES = ["/chat", "/login", "/signup", "/forgot-password", "/reset-password", "/admin"];
+// The admin panel has its own sidebar shell — the public site's top nav
+// would just duplicate navigation and eat vertical space there.
+const NO_NAVBAR_PREFIXES = ["/admin"];
 
 function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   const location = useLocation();
   const showFooter = !NO_FOOTER_PREFIXES.some((prefix) => location.pathname.startsWith(prefix));
+  const showNavbar = !NO_NAVBAR_PREFIXES.some((prefix) => location.pathname.startsWith(prefix));
 
   useEffect(() => {
     checkAuth();
@@ -52,7 +60,7 @@ function App() {
   return (
     <GoogleAuthProvider>
       <div className="min-h-svh bg-paper">
-        <Navbar />
+        {showNavbar && <Navbar />}
         <div key={location.pathname} className="page-enter">
         <Routes>
           {/* Public directory pages — Home / Explore / About / Post detail
@@ -93,12 +101,17 @@ function App() {
             path="/admin"
             element={
               authUser?.role === "admin" ? (
-                <AdminPage />
+                <AdminLayout />
               ) : (
                 <Navigate to={authUser ? "/" : "/login"} />
               )
             }
-          />
+          >
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="posts" element={<AdminPostsPage />} />
+            <Route path="banners" element={<AdminBannersPage />} />
+          </Route>
           <Route
             path="/settings"
             element={authUser ? <SettingsPage /> : <Navigate to="/login" />}
